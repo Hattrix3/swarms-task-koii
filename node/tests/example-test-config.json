@@ -1,15 +1,13 @@
 {
   "version": "1.0.0",
-  "name": "Swarm System Test Suite",
+  "name": "Orca Swarm System Test Suite",
   "description": "Comprehensive test suite for distributed system components",
-  "global_environment": {
-    "name": "integration",
-    "variables": {
-      "NODE_ENV": "test",
-      "DEBUG": "true"
-    },
-    "requires_docker": true,
-    "requires_network": true
+  "languages": ["typescript", "python"],
+  "test_types": ["unit", "integration", "security"],
+  "global_config": {
+    "environment": "test",
+    "timeout": 600,
+    "required_services": ["database", "network", "cache"]
   },
   "test_cases": [
     {
@@ -18,19 +16,17 @@
       "description": "Validate swarm job creation process",
       "type": "integration",
       "language": "typescript",
-      "timeout": 60,
+      "timeout": 120,
       "dependencies": ["database", "network"]
     },
     {
       "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-      "name": "Node Authentication Test",
-      "description": "Test node authentication mechanisms",
+      "name": "Node Authentication Security Test",
+      "description": "Test node authentication security mechanisms",
       "type": "security",
       "language": "python",
-      "timeout": 30,
+      "timeout": 90,
       "skip": false
     }
-  ],
-  "tags": ["swarm", "integration", "ci"],
-  "required_services": ["database", "network", "cache"]
+  ]
 }
