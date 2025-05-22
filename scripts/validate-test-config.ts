@@ -6,35 +6,29 @@ import { join } from 'path';
 function validateTestConfigs(directory: string) {
   const validator = new TestConfigValidator();
   const configFiles = readdirSync(directory)
-    .filter(file => file.endsWith('.json') && file.includes('test-config'));
+    .filter(file => file.endsWith('.json'));
 
-  const results: {[key: string]: boolean | string} = {};
+  const errors: string[] = [];
 
   configFiles.forEach(file => {
     const filePath = join(directory, file);
     try {
       validator.validateFile(filePath);
-      results[file] = true;
+      console.log(`✅ ${file}: Valid`);
     } catch (error) {
-      results[file] = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`❌ ${file}: Invalid`);
+      if (error instanceof Error) {
+        errors.push(`${file}: ${error.message}`);
+      }
     }
   });
 
-  return results;
+  if (errors.length > 0) {
+    console.error('Test Configuration Validation Failed:');
+    errors.forEach(error => console.error(error));
+    process.exit(1);
+  }
 }
 
-function main() {
-  const testConfigDirectory = join(__dirname, '..', 'node', 'tests');
-  const validationResults = validateTestConfigs(testConfigDirectory);
-
-  console.log('Test Configuration Validation Results:');
-  Object.entries(validationResults).forEach(([file, result]) => {
-    console.log(`${file}: ${result === true ? 'PASS' : `FAIL - ${result}`}`);
-  });
-
-  // Exit with non-zero status if any validation fails
-  const hasFailures = Object.values(validationResults).some(result => result !== true);
-  process.exit(hasFailures ? 1 : 0);
-}
-
-main();
+// Run validation on test configuration directory
+validateTestConfigs('./node/tests');
