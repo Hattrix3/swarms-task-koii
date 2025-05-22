@@ -1,41 +1,40 @@
 #!/usr/bin/env node
-import { TestConfigValidator } from '../node/tests/test-config-validator';
-import { readdir, readFile } from 'fs/promises';
+import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
+import { TestConfigValidator } from '../node/tests/test-config-validator';
 
-async function validateTestConfigs() {
+function validateTestConfigs(directory: string) {
   const validator = new TestConfigValidator();
-  const configDir = join(__dirname, '..', 'node', 'tests');
-  
-  try {
-    // Find all JSON files in the tests directory
-    const files = await readdir(configDir);
-    const jsonConfigs = files.filter(file => file.endsWith('.json'));
+  const configFiles = readdirSync(directory)
+    .filter(file => file.endsWith('.json'));
 
-    console.log('Validating test configurations...');
+  const results: {[key: string]: boolean} = {};
+  let hasErrors = false;
 
-    for (const file of jsonConfigs) {
-      const filePath = join(configDir, file);
-      try {
-        const fileContents = await readFile(filePath, 'utf-8');
-        const config = JSON.parse(fileContents);
-        
-        validator.validate(config);
-        console.log(`✓ ${file}: Valid configuration`);
-      } catch (error) {
-        console.error(`✗ ${file}: Invalid configuration`);
-        if (error instanceof Error) {
-          console.error(error.message);
-        }
-        process.exit(1);
+  configFiles.forEach(file => {
+    const filePath = join(directory, file);
+    try {
+      validator.validateFile(filePath);
+      results[file] = true;
+      console.log(`✅ ${file}: Valid`);
+    } catch (error) {
+      results[file] = false;
+      hasErrors = true;
+      console.error(`❌ ${file}: Invalid`);
+      if (error instanceof Error) {
+        console.error(error.message);
       }
     }
+  });
 
-    console.log('All test configurations are valid.');
-  } catch (error) {
-    console.error('Error during test configuration validation:', error);
+  if (hasErrors) {
+    console.error('Some test configurations are invalid.');
     process.exit(1);
   }
+
+  console.log('All test configurations are valid.');
 }
 
-validateTestConfigs();
+// Usage: node validate-test-config.ts <directory>
+const directory = process.argv[2] || 'node/tests';
+validateTestConfigs(directory);
