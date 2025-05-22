@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
-  "name": "Distributed System Test Suite",
-  "description": "Comprehensive test suite for Orca Agent components",
+  "name": "Swarm System Test Suite",
+  "description": "Comprehensive test suite for distributed system components",
   "languages": ["typescript", "python"],
-  "test_types": ["unit", "integration", "e2e"],
+  "test_types": ["unit", "integration", "security"],
   "global_config": {
     "environment": "test",
     "timeout": 600,
@@ -17,7 +17,7 @@
       "type": "integration",
       "language": "typescript",
       "timeout": 120,
-      "dependencies": ["database", "network"]
+      "dependencies": ["database_connection"]
     },
     {
       "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
