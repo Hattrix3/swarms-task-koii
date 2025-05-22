@@ -1,34 +1,33 @@
 #!/usr/bin/env node
 import { TestConfigValidator } from '../node/tests/test-config-validator';
-import { readFileSync, readdirSync } from 'fs';
+import { glob } from 'glob';
 import { join } from 'path';
 
-function validateTestConfigs(directory: string) {
+async function validateTestConfigs() {
   const validator = new TestConfigValidator();
-  const configFiles = readdirSync(directory)
-    .filter(file => file.endsWith('.json'));
+  const configFiles = await glob.sync('**/*.test-config.json');
 
-  const errors: string[] = [];
+  console.log('Validating test configuration files...');
 
-  configFiles.forEach(file => {
-    const filePath = join(directory, file);
+  const failedConfigs: string[] = [];
+
+  for (const file of configFiles) {
     try {
-      validator.validateFile(filePath);
-      console.log(`✅ ${file}: Valid`);
+      validator.validateFile(join(process.cwd(), file));
+      console.log(`✓ ${file} is valid`);
     } catch (error) {
-      console.error(`❌ ${file}: Invalid`);
-      if (error instanceof Error) {
-        errors.push(`${file}: ${error.message}`);
-      }
+      console.error(`✗ ${file} is invalid`);
+      console.error(error);
+      failedConfigs.push(file);
     }
-  });
+  }
 
-  if (errors.length > 0) {
-    console.error('Test Configuration Validation Failed:');
-    errors.forEach(error => console.error(error));
+  if (failedConfigs.length > 0) {
+    console.error(`\n${failedConfigs.length} test configuration(s) failed validation`);
     process.exit(1);
   }
+
+  console.log('All test configurations are valid.');
 }
 
-// Run validation on test configuration directory
-validateTestConfigs('./node/tests');
+validateTestConfigs();
